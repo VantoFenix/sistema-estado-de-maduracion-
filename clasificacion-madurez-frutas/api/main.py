@@ -1,15 +1,18 @@
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from pathlib import Path
+import logging
+import os
 from uuid import uuid4
 
 from fastapi import FastAPI, File, HTTPException, Query, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from api.monitoring import (
     evaluate_drift_and_confidence,
     get_monitoring_summary,
+    initialize_monitoring_storage,
     record_feedback,
     record_prediction,
 )
@@ -19,7 +22,7 @@ from api.schemas import (
     MetricsSummaryResponse,
     PredictionResponse,
 )
-from src.config import BASE_DIR, CLASS_NAMES
+from src.config import BASE_DIR, CLASS_NAMES, MODEL_PATH
 from src.inference import (
     generate_gradcam_base64,
     load_class_names,
@@ -30,18 +33,38 @@ from src.inference import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    initialize_monitoring_storage()
     app.state.model = None
     app.state.class_names = load_class_names()
-    try:
+    if MODEL_PATH.is_file():
         app.state.model = load_inference_model()
-    except (FileNotFoundError, OSError, ValueError):
-        app.state.model = None
+    else:
+        logging.getLogger(__name__).warning(
+            "No se encontró el modelo en %s; /predict responderá HTTP 503 "
+            "hasta que se despliegue un modelo entrenado.",
+            MODEL_PATH,
+        )
     yield
 
 
 app = FastAPI(title="Clasificacion de Madurez", lifespan=lifespan)
 app.state.model = None
 app.state.class_names = load_class_names()
+
+cors_origins = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv("CORS_ORIGINS", "*").split(",")
+    if origin.strip()
+]
+if not cors_origins:
+    cors_origins = ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials="*" not in cors_origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 static_dir = BASE_DIR / "api" / "static"
 static_file = static_dir / "index.html"

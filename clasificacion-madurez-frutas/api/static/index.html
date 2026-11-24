@@ -3,247 +3,631 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Clasificación de madurez</title>
+  <meta name="theme-color" content="#0b1120">
+  <link rel="icon" href="data:,">
+  <title>Madurez · Vision Console</title>
   <style>
     :root {
-      color-scheme: light;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: #17231d;
-      background: #f3f6f2;
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #e2e8f0;
+      background: #0b1120;
       font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --canvas: #0b1120;
+      --panel: #151f32;
+      --panel-raised: #1b2940;
+      --line: #2a3950;
+      --muted: #8fa0b8;
+      --text: #e2e8f0;
+      --green: #4ade80;
+      --red: #fb7185;
+      --amber: #fbbf24;
+      --blue: #60a5fa;
+      --radius: 16px;
     }
 
     * { box-sizing: border-box; }
+    body { min-width: 320px; margin: 0; background: radial-gradient(ellipse at 50% -25%, #1c3150 0, var(--canvas) 58%); }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: wait; opacity: .6; }
+    .shell { width: min(1380px, calc(100% - 40px)); margin: 0 auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 76px; border-bottom: 1px solid #26344a; }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 210px; }
+    .brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid #3b8c65; border-radius: 12px; color: var(--green); background: #143427; }
+    .brand-name { font-size: .96rem; font-weight: 750; letter-spacing: .01em; }
+    .brand-subtitle { margin-top: 2px; color: var(--muted); font-size: .72rem; letter-spacing: .11em; text-transform: uppercase; }
+    .connection { display: flex; align-items: center; gap: 9px; width: min(760px, 100%); }
+    .api-form { display: flex; flex: 1; align-items: center; gap: 8px; min-width: 0; }
+    .api-form input { width: 100%; min-width: 120px; }
+    .control { min-height: 40px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; outline: none; color: var(--text); background: #0f192a; }
+    .control:focus { border-color: #4b83bd; box-shadow: 0 0 0 3px #3b82f633; }
+    .button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 8px; padding: 9px 14px; border: 1px solid transparent; border-radius: 9px; color: #07140c; background: var(--green); font-size: .86rem; font-weight: 750; transition: background .15s, transform .15s; }
+    .button:hover:not(:disabled) { transform: translateY(-1px); background: #86efac; }
+    .button-quiet { border-color: var(--line); color: #d7e2ef; background: #172338; }
+    .button-quiet:hover:not(:disabled) { background: #24344e; }
+    .button-icon { width: 40px; padding: 0; }
+    .status { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 7px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: #111b2c; font-size: .76rem; font-weight: 650; white-space: nowrap; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #64748b; box-shadow: 0 0 0 3px #64748b22; }
+    .status[data-state="connected"] { border-color: #276344; color: #a7f3c2; background: #10291f; }
+    .status[data-state="connected"] .status-dot { background: var(--green); box-shadow: 0 0 0 3px #4ade8022; }
+    .status[data-state="no-model"] { border-color: #725622; color: #fcd98a; background: #2b2314; }
+    .status[data-state="no-model"] .status-dot { background: var(--amber); box-shadow: 0 0 0 3px #fbbf2422; }
+    .status[data-state="error"] { border-color: #71343f; color: #fda4af; background: #2b171e; }
+    .status[data-state="error"] .status-dot { background: var(--red); box-shadow: 0 0 0 3px #fb718522; }
 
-    body { margin: 0; }
+    .intro { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding: 27px 0 22px; }
+    .eyebrow { margin: 0 0 8px; color: #7ea6d1; font-size: .73rem; font-weight: 750; letter-spacing: .15em; text-transform: uppercase; }
+    h1 { margin: 0; color: #f1f5f9; font-size: clamp(1.55rem, 3vw, 2.1rem); letter-spacing: -.035em; }
+    .intro-copy { max-width: 650px; margin: 8px 0 0; color: var(--muted); font-size: .92rem; line-height: 1.55; }
+    .model-chip { display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; color: #bac8d9; background: #111b2c; font-size: .78rem; white-space: nowrap; }
+    .model-chip svg { color: #8bb9eb; }
 
-    header {
-      padding: 2.5rem 1.25rem;
-      color: white;
-      background: linear-gradient(120deg, #155d3b, #27845b);
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); align-items: start; gap: 18px; padding-bottom: 40px; }
+    .stack { display: grid; gap: 18px; min-width: 0; }
+    .card { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(145deg, #1a2639, var(--panel) 62%); box-shadow: 0 14px 36px #0000001c; }
+    .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 19px 14px; }
+    .card-title { display: flex; align-items: center; gap: 10px; margin: 0; color: #e8eef6; font-size: .98rem; font-weight: 730; }
+    .section-icon { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid #32445e; border-radius: 9px; color: #8eb6e2; background: #1b2b42; }
+    .card-subtitle { margin: 5px 0 0 40px; color: var(--muted); font-size: .78rem; line-height: 1.4; }
+    .card-body { padding: 0 19px 19px; }
+    .step-label { color: #6f829b; font-size: .7rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+
+    .drop-zone { position: relative; display: grid; min-height: 220px; place-items: center; overflow: hidden; border: 1px dashed #465a75; border-radius: 13px; background: #101a2a; transition: border-color .16s, background .16s; }
+    .drop-zone.is-dragging { border-color: var(--green); background: #122b22; }
+    .drop-zone.has-image { min-height: 250px; border-style: solid; border-color: #3a4b62; }
+    .drop-zone input { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; cursor: pointer; opacity: 0; }
+    .drop-content { padding: 24px; color: var(--muted); text-align: center; pointer-events: none; }
+    .upload-symbol { display: grid; width: 52px; height: 52px; place-items: center; margin: 0 auto 13px; border: 1px solid #344863; border-radius: 15px; color: #91b9e6; background: #1a2a41; }
+    .drop-title { margin: 0; color: #d7e2ef; font-size: .94rem; font-weight: 670; }
+    .drop-help { margin: 6px 0 0; font-size: .77rem; }
+    .preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #0d1523; }
+    .preview-caption { position: absolute; z-index: 1; right: 10px; bottom: 10px; left: 10px; overflow: hidden; padding: 8px 10px; border: 1px solid #ffffff1a; border-radius: 8px; color: #edf4fb; background: #0b1120d9; font-size: .74rem; text-overflow: ellipsis; white-space: nowrap; }
+    .upload-meta { display: flex; justify-content: space-between; gap: 12px; margin: 9px 1px 14px; color: #71839b; font-size: .73rem; }
+    .option-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 14px; }
+    .option-title { color: #d3deeb; font-size: .83rem; font-weight: 650; }
+    .option-note { margin-top: 3px; color: var(--muted); font-size: .72rem; }
+    .toggle { position: relative; width: 43px; height: 24px; flex: 0 0 auto; }
+    .toggle input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .toggle-track { position: absolute; inset: 0; border: 1px solid #44546a; border-radius: 999px; background: #29364a; cursor: pointer; transition: .18s; }
+    .toggle-track::after { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #aab8ca; content: ""; transition: .18s; }
+    .toggle input:checked + .toggle-track { border-color: #3b9a65; background: #1c7046; }
+    .toggle input:checked + .toggle-track::after { transform: translateX(19px); background: white; }
+    .toggle input:focus-visible + .toggle-track { outline: 3px solid #60a5fa77; outline-offset: 2px; }
+    .analyze-button { width: 100%; min-height: 46px; }
+    .button-spinner { display: none; width: 15px; height: 15px; border: 2px solid #07140c55; border-top-color: #07140c; border-radius: 50%; animation: spin .75s linear infinite; }
+    .analyze-button[aria-busy="true"] .button-spinner { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .inline-message { min-height: 19px; margin: 10px 0 0; color: var(--muted); font-size: .77rem; }
+    .inline-message.error { color: #fda4af; }
+    .inline-message.success { color: #86efac; }
+
+    .result-card[hidden] { display: none; }
+    .result-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 15px; border: 1px solid #34465d; border-radius: 12px; background: #111b2b; }
+    .result-class { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .fruit-mark { display: grid; width: 40px; height: 40px; flex: 0 0 auto; place-items: center; border-radius: 12px; color: var(--green); background: #183527; }
+    .fruit-mark.podrida { color: var(--red); background: #3a202a; }
+    .fruit-mark.verde { color: #a3e635; background: #2c351b; }
+    .result-name { margin: 0; color: #f1f5f9; font-size: 1.13rem; font-weight: 760; }
+    .result-caption { margin: 3px 0 0; color: var(--muted); font-size: .72rem; }
+    .confidence-value { color: #e8f4ec; font-size: 1.45rem; font-variant-numeric: tabular-nums; font-weight: 760; }
+    .confidence-label { margin-top: 2px; color: var(--muted); font-size: .68rem; text-align: right; text-transform: uppercase; }
+    .metrics-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 13px 0 17px; }
+    .mini-metric { padding: 11px 12px; border: 1px solid #2a394f; border-radius: 10px; background: #121c2c; }
+    .mini-label { color: var(--muted); font-size: .71rem; }
+    .mini-value { margin-top: 4px; color: #e4edf7; font-size: .96rem; font-variant-numeric: tabular-nums; font-weight: 720; }
+    .subheading { display: flex; align-items: center; justify-content: space-between; margin: 0 0 11px; color: #d8e2ee; font-size: .78rem; font-weight: 700; }
+    .probability-list { display: grid; gap: 12px; }
+    .prob-row { display: grid; grid-template-columns: 66px 1fr 49px; align-items: center; gap: 10px; }
+    .prob-name { color: #aab9cb; font-size: .76rem; }
+    .prob-track { height: 7px; overflow: hidden; border-radius: 999px; background: #0c1523; }
+    .prob-fill { height: 100%; border-radius: inherit; transition: width .35s ease; }
+    .prob-fill.madura { background: #4ade80; }
+    .prob-fill.podrida { background: #fb7185; }
+    .prob-fill.verde { background: #a3e635; }
+    .prob-value { color: #cbd5e1; font-size: .73rem; font-variant-numeric: tabular-nums; text-align: right; }
+    .alerts { display: grid; gap: 8px; margin-top: 15px; }
+    .alert { padding: 10px 12px; border: 1px solid #735b28; border-radius: 9px; color: #f8d98d; background: #2b2417; font-size: .77rem; line-height: 1.45; }
+    .alert.danger { border-color: #763b48; color: #ffabb7; background: #2e1b23; }
+    .alert-title { margin-bottom: 2px; font-weight: 750; }
+
+    .gradcam-frame { display: grid; min-height: 300px; place-items: center; overflow: hidden; border: 1px solid #2b3a50; border-radius: 12px; background: repeating-linear-gradient(135deg, #111b2b, #111b2b 12px, #131f31 12px, #131f31 24px); }
+    .gradcam-frame img { display: block; width: 100%; max-height: 440px; object-fit: contain; }
+    .gradcam-empty { max-width: 260px; padding: 20px; color: #8192aa; font-size: .8rem; line-height: 1.55; text-align: center; }
+    .gradcam-empty svg { display: block; margin: 0 auto 12px; color: #7085a0; }
+    .gradcam-note { margin: 10px 1px 0; color: #7789a2; font-size: .72rem; }
+    .metrics-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kpi { min-height: 96px; padding: 13px; border: 1px solid #2c3b51; border-radius: 11px; background: #121c2c; }
+    .kpi-label { color: var(--muted); font-size: .72rem; }
+    .kpi-value { margin-top: 10px; color: #eff6ff; font-size: 1.36rem; font-variant-numeric: tabular-nums; font-weight: 750; letter-spacing: -.025em; }
+    .kpi-unit { margin-left: 4px; color: #a1afc2; font-size: .72rem; font-weight: 550; letter-spacing: 0; }
+    .feedback-disabled { margin: 0 0 13px; padding: 9px 11px; border: 1px solid #35445a; border-radius: 8px; color: #9eacc0; background: #121c2c; font-size: .74rem; }
+    .feedback-disabled.ready { border-color: #286044; color: #a7f3c2; background: #11291f; }
+    .form-label { display: block; margin: 12px 0 6px; color: #c5d0df; font-size: .77rem; font-weight: 650; }
+    select, textarea { width: 100%; border: 1px solid #34445b; border-radius: 9px; outline: none; color: var(--text); background: #0f1929; }
+    select { min-height: 41px; padding: 9px 11px; }
+    textarea { min-height: 78px; padding: 10px 11px; resize: vertical; }
+    select:focus, textarea:focus { border-color: #4b83bd; box-shadow: 0 0 0 3px #3b82f633; }
+    .feedback-submit { width: 100%; margin-top: 13px; }
+    footer { padding: 0 0 25px; color: #60728b; font-size: .7rem; text-align: center; }
+
+    @media (max-width: 960px) {
+      .shell { width: min(100% - 28px, 760px); }
+      .topbar { align-items: flex-start; flex-direction: column; padding: 15px 0; }
+      .connection { width: 100%; }
+      .workspace { grid-template-columns: 1fr; }
     }
-
-    header > div, main { width: min(940px, 100% - 2rem); margin: 0 auto; }
-    h1 { margin: 0 0 .45rem; font-size: clamp(1.7rem, 5vw, 2.4rem); }
-    header p { margin: 0; color: #e0f0e5; }
-    main { padding: 1.5rem 0 3rem; display: grid; gap: 1rem; }
-
-    section {
-      padding: 1.25rem;
-      border: 1px solid #dfe7df;
-      border-radius: 14px;
-      background: white;
-      box-shadow: 0 4px 16px #163b2410;
+    @media (max-width: 560px) {
+      .shell { width: calc(100% - 22px); }
+      .connection { align-items: stretch; flex-wrap: wrap; }
+      .api-form { flex: 1 1 100%; }
+      .connection > .button { flex: 1; }
+      .intro { align-items: flex-start; flex-direction: column; padding-top: 22px; }
+      .card-head, .card-body { padding-right: 14px; padding-left: 14px; }
+      .drop-zone { min-height: 190px; }
+      .gradcam-frame { min-height: 240px; }
+      .metrics-grid { gap: 8px; }
+      .kpi { min-height: 87px; padding: 11px; }
+      .kpi-value { font-size: 1.2rem; }
     }
-
-    h2 { margin: 0 0 1rem; font-size: 1.2rem; }
-    label { display: block; margin: .75rem 0 .35rem; font-weight: 600; }
-    input[type="file"], select, textarea {
-      width: 100%;
-      padding: .7rem;
-      border: 1px solid #cbd6cc;
-      border-radius: 8px;
-      background: white;
-      font: inherit;
-    }
-
-    textarea { min-height: 5rem; resize: vertical; }
-    .inline { display: flex; align-items: center; gap: .55rem; margin: 1rem 0; }
-    .inline label { margin: 0; font-weight: 500; }
-    button {
-      padding: .7rem 1rem;
-      border: 0;
-      border-radius: 8px;
-      color: white;
-      background: #17613e;
-      font: inherit;
-      font-weight: 650;
-      cursor: pointer;
-    }
-
-    button:hover { background: #104c30; }
-    button:disabled { opacity: .6; cursor: wait; }
-    .secondary { color: #155d3b; background: #e6f2e9; }
-    .secondary:hover { background: #d7eadc; }
-    .message { min-height: 1.4rem; margin: .75rem 0 0; }
-    .error { color: #a32323; }
-    .success { color: #17613e; }
-    .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .6rem 1rem; }
-    .result-grid p { margin: .25rem 0; overflow-wrap: anywhere; }
-    .prediction { color: #155d3b; font-size: 1.35rem; font-weight: 750; }
-    .probability { margin: .85rem 0; }
-    .probability-heading { display: flex; justify-content: space-between; margin-bottom: .3rem; }
-    .bar { height: 10px; overflow: hidden; border-radius: 999px; background: #e8eee9; }
-    .bar span { display: block; height: 100%; background: #35a66d; }
-    .alert { padding: .7rem .85rem; margin-top: .65rem; border-radius: 8px; background: #fff3d4; color: #664d00; }
-    .alert.danger { background: #fde7e7; color: #8c2020; }
-    .gradcam { display: block; max-width: 100%; width: 224px; margin-top: 1rem; border-radius: 8px; }
-    pre { overflow: auto; padding: 1rem; border-radius: 8px; background: #f2f5f2; white-space: pre-wrap; }
-    [hidden] { display: none !important; }
-
-    @media (min-width: 700px) {
-      main { grid-template-columns: 1fr 1fr; align-items: start; }
-      .wide { grid-column: 1 / -1; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <div>
-      <h1>Clasificación de madurez</h1>
-      <p>Analiza una imagen y registra correcciones para mejorar el sistema.</p>
-    </div>
-  </header>
-
-  <main>
-    <section>
-      <h2>Analizar imagen</h2>
-      <form id="predict-form">
-        <label for="image-file">Imagen de fruta o vegetal</label>
-        <input id="image-file" name="file" type="file" accept="image/*" required>
-        <div class="inline">
-          <input id="include-gradcam" type="checkbox" checked>
-          <label for="include-gradcam">Incluir visualización Grad-CAM</label>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 20c-4.7 0-7.5-3.1-7.5-7.2 0-3.6 2.8-6.1 7.5-6.1s7.5 2.5 7.5 6.1C19.5 16.9 16.7 20 12 20Z" stroke="currentColor" stroke-width="1.7"/>
+            <path d="M12 6.8c.2-2.2 1.7-3.8 4.5-4.3-.1 2.6-1.6 4.1-4.5 4.3ZM12 8.3c-.1 3.2-.1 6.5 0 9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
         </div>
-        <button id="predict-button" type="submit">Predecir</button>
-      </form>
-      <p id="predict-message" class="message" role="status" aria-live="polite"></p>
-    </section>
-
-    <section id="prediction-result" hidden>
-      <h2>Resultado</h2>
-      <p id="predicted-class" class="prediction"></p>
-      <div class="result-grid">
-        <p>Confianza: <strong id="confidence"></strong></p>
-        <p>Latencia: <strong id="latency"></strong></p>
-        <p>ID de predicción: <strong id="prediction-id"></strong></p>
+        <div>
+          <div class="brand-name">Madurez Vision</div>
+          <div class="brand-subtitle">Inference console</div>
+        </div>
       </div>
-      <h3>Probabilidades</h3>
-      <div id="probabilities"></div>
-      <div id="alerts"></div>
-      <img id="gradcam-image" class="gradcam" alt="Visualización Grad-CAM" hidden>
+      <div class="connection" aria-label="Conexión con API">
+        <span id="api-status" class="status" data-state="unknown" role="status">
+          <span class="status-dot"></span><span id="api-status-text">Sin probar</span>
+        </span>
+        <form id="api-config-form" class="api-form">
+          <input id="api-url" class="control" type="url" inputmode="url" aria-label="URL base de la API" placeholder="https://tu-api.onrender.com">
+          <button class="button button-quiet" type="submit">Guardar</button>
+        </form>
+        <button id="test-api-button" class="button button-quiet" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 7v5h-5M4.9 9a7.5 7.5 0 0 1 12.6-2L20 12M4 17v-5h5m10.1 3a7.5 7.5 0 0 1-12.6 2L4 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Probar conexión
+        </button>
+      </div>
+    </header>
+
+    <section class="intro">
+      <div>
+        <p class="eyebrow">Computer vision · MLOps</p>
+        <h1>Clasificación de madurez</h1>
+        <p class="intro-copy">Analiza el estado de frutas y vegetales, inspecciona la explicación visual del modelo y aporta feedback para mejorar la calidad.</p>
+      </div>
+      <div class="model-chip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4.5 7v10l7.5 4 7.5-4V7L12 3Z" stroke="currentColor" stroke-width="1.6"/><path d="m4.8 7.2 7.2 4 7.2-4M12 11.2V21" stroke="currentColor" stroke-width="1.6"/></svg>
+        CNN · 3 clases
+      </div>
     </section>
 
-    <section>
-      <h2>Retroalimentación del usuario</h2>
-      <form id="feedback-form">
-        <label for="real-label">Etiqueta real</label>
-        <select id="real-label" required>
-          <option value="madura">madura</option>
-          <option value="podrida">podrida</option>
-          <option value="verde">verde</option>
-        </select>
-        <label for="comment">Comentario (opcional)</label>
-        <textarea id="comment" maxlength="1000" placeholder="Observaciones sobre la predicción"></textarea>
-        <button id="feedback-button" type="submit">Enviar retroalimentación</button>
-      </form>
-      <p id="feedback-message" class="message" role="status" aria-live="polite"></p>
-    </section>
+    <main class="workspace">
+      <div class="stack">
+        <section class="card" aria-labelledby="capture-title">
+          <div class="card-head">
+            <div>
+              <h2 id="capture-title" class="card-title"><span class="section-icon">01</span> Captura y análisis</h2>
+              <p class="card-subtitle">Carga una imagen para estimar su estado.</p>
+            </div>
+            <span class="step-label">Predict</span>
+          </div>
+          <div class="card-body">
+            <form id="predict-form">
+              <div id="drop-zone" class="drop-zone">
+                <input id="image-file" type="file" accept="image/*" aria-label="Seleccionar imagen de fruta o vegetal" required>
+                <div id="drop-content" class="drop-content">
+                  <span class="upload-symbol">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </span>
+                  <p class="drop-title">Arrastra una imagen aquí</p>
+                  <p class="drop-help">o haz clic para explorar · PNG, JPG, WEBP</p>
+                </div>
+                <img id="image-preview" class="preview" alt="Vista previa de la imagen seleccionada" hidden>
+                <span id="preview-caption" class="preview-caption" hidden></span>
+              </div>
+              <div class="upload-meta"><span id="file-name">Ninguna imagen seleccionada</span><span>RGB · 224 × 224</span></div>
+              <div class="option-row">
+                <div>
+                  <div class="option-title">Generar mapa Grad-CAM</div>
+                  <div class="option-note">Puede incrementar la latencia y el uso de RAM.</div>
+                </div>
+                <label class="toggle" aria-label="Incluir Grad-CAM">
+                  <input id="include-gradcam" type="checkbox" role="switch">
+                  <span class="toggle-track"></span>
+                </label>
+              </div>
+              <button id="analyze-button" class="button analyze-button" type="submit">
+                <span class="button-spinner" aria-hidden="true"></span>
+                <span id="analyze-button-label">Analizar imagen</span>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </form>
+            <p id="prediction-message" class="inline-message" role="status" aria-live="polite"></p>
+          </div>
+        </section>
 
-    <section>
-      <h2>Métricas del servicio</h2>
-      <button id="metrics-button" class="secondary" type="button">Consultar métricas</button>
-      <pre id="metrics-output" aria-live="polite">Pulsa el botón para consultar las métricas.</pre>
-    </section>
-  </main>
+        <section id="prediction-result" class="card result-card" aria-labelledby="result-title" hidden>
+          <div class="card-head">
+            <div>
+              <h2 id="result-title" class="card-title"><span class="section-icon">02</span> Resultado del modelo</h2>
+              <p class="card-subtitle">Predicción y distribución de probabilidades.</p>
+            </div>
+            <span class="step-label">Output</span>
+          </div>
+          <div class="card-body">
+            <div class="result-top">
+              <div class="result-class">
+                <span id="fruit-mark" class="fruit-mark" aria-hidden="true">
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M12 20c-4.3 0-7-2.9-7-6.7 0-3.3 2.7-5.7 7-5.7s7 2.4 7 5.7c0 3.8-2.7 6.7-7 6.7Z" stroke="currentColor" stroke-width="1.6"/><path d="M12 7.6c.2-2 1.6-3.4 4-3.9-.1 2.3-1.5 3.7-4 3.9Z" stroke="currentColor" stroke-width="1.6"/></svg>
+                </span>
+                <div><p id="predicted-class" class="result-name">—</p><p class="result-caption">Clase estimada</p></div>
+              </div>
+              <div><div id="confidence" class="confidence-value">—</div><div class="confidence-label">Confianza</div></div>
+            </div>
+            <div class="metrics-strip">
+              <div class="mini-metric"><div class="mini-label">Latencia inferencia</div><div id="latency" class="mini-value">—</div></div>
+              <div class="mini-metric"><div class="mini-label">Prediction ID</div><div id="prediction-id" class="mini-value" title="ID de la predicción">—</div></div>
+            </div>
+            <h3 class="subheading">Probabilidad por clase <span>Softmax</span></h3>
+            <div id="probabilities" class="probability-list"></div>
+            <div id="alerts" class="alerts" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="feedback-title">
+          <div class="card-head">
+            <div>
+              <h2 id="feedback-title" class="card-title"><span class="section-icon">03</span> Retroalimentación</h2>
+              <p class="card-subtitle">Ayuda a validar y mejorar futuras predicciones.</p>
+            </div>
+            <span class="step-label">Human review</span>
+          </div>
+          <div class="card-body">
+            <p id="feedback-state" class="feedback-disabled">Realiza una predicción para habilitar el feedback.</p>
+            <form id="feedback-form">
+              <label class="form-label" for="real-label">Etiqueta real</label>
+              <select id="real-label" required disabled>
+                <option value="madura">madura</option>
+                <option value="podrida">podrida</option>
+                <option value="verde">verde</option>
+              </select>
+              <label class="form-label" for="comment">Comentario <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
+              <textarea id="comment" maxlength="500" placeholder="Añade un detalle útil sobre esta muestra…" disabled></textarea>
+              <button id="feedback-button" class="button button-quiet feedback-submit" type="submit" disabled>Enviar retroalimentación</button>
+            </form>
+            <p id="feedback-message" class="inline-message" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+      </div>
+
+      <div class="stack">
+        <section class="card" aria-labelledby="explain-title">
+          <div class="card-head">
+            <div>
+              <h2 id="explain-title" class="card-title"><span class="section-icon">04</span> Explicabilidad visual</h2>
+              <p class="card-subtitle">Regiones que influyen en la clase seleccionada.</p>
+            </div>
+            <span class="step-label">Grad-CAM</span>
+          </div>
+          <div class="card-body">
+            <div id="gradcam-frame" class="gradcam-frame">
+              <div id="gradcam-empty" class="gradcam-empty">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5" stroke="currentColor" stroke-width="1.5"/><circle cx="8.5" cy="9" r="1.5" stroke="currentColor" stroke-width="1.5"/><path d="m4 17 5-5 3 3 3-4 5 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Activa <strong>Generar mapa Grad-CAM</strong> antes del análisis para solicitar la explicación visual.
+              </div>
+              <img id="gradcam-image" alt="Mapa Grad-CAM superpuesto sobre la imagen analizada" hidden>
+            </div>
+            <p id="gradcam-note" class="gradcam-note">El mapa de activación es opcional y puede aumentar el tiempo de respuesta.</p>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="metrics-title">
+          <div class="card-head">
+            <div>
+              <h2 id="metrics-title" class="card-title"><span class="section-icon">05</span> Monitoreo del servicio</h2>
+              <p class="card-subtitle">Resumen agregado de predicciones y feedback.</p>
+            </div>
+            <button id="metrics-button" class="button button-quiet button-icon" type="button" aria-label="Actualizar métricas" title="Actualizar métricas">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 7v5h-5M4.9 9a7.5 7.5 0 0 1 12.6-2L20 12M4 17v-5h5m10.1 3a7.5 7.5 0 0 1-12.6 2L4 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="metrics-grid">
+              <div class="kpi"><div class="kpi-label">Total predicciones</div><div id="metric-predictions" class="kpi-value">—</div></div>
+              <div class="kpi"><div class="kpi-label">Latencia promedio</div><div id="metric-latency" class="kpi-value">—<span class="kpi-unit">ms</span></div></div>
+              <div class="kpi"><div class="kpi-label">Confianza promedio</div><div id="metric-confidence" class="kpi-value">—</div></div>
+              <div class="kpi"><div class="kpi-label">Eventos de drift</div><div id="metric-drift" class="kpi-value">—</div></div>
+              <div class="kpi"><div class="kpi-label">Acuerdo feedback</div><div id="metric-agreement" class="kpi-value">—</div></div>
+              <div class="kpi"><div class="kpi-label">Predicciones baja confianza</div><div id="metric-low-confidence" class="kpi-value">—</div></div>
+            </div>
+            <p id="metrics-message" class="inline-message" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+      </div>
+    </main>
+    <footer>Madurez Vision · Inferencia y monitoreo de calidad</footer>
+  </div>
 
   <script>
-    const predictionForm = document.querySelector("#predict-form");
-    const predictionButton = document.querySelector("#predict-button");
-    const predictionMessage = document.querySelector("#predict-message");
-    const predictionResult = document.querySelector("#prediction-result");
-    let currentPredictionId = null;
+    const apiStatus = document.querySelector("#api-status");
+    const apiStatusText = document.querySelector("#api-status-text");
+    const apiUrlInput = document.querySelector("#api-url");
+    const apiForm = document.querySelector("#api-config-form");
+    const apiQueryValue = new URLSearchParams(window.location.search).get("api");
+    const hostname = window.location.hostname.toLowerCase();
+    const localHosts = ["localhost", "127.0.0.1", "::1"];
+    const staticHosts = [".vercel.app", ".netlify.app", ".pages.dev", ".github.io"];
+    const isStaticHost = staticHosts.some((suffix) => hostname.endsWith(suffix)) ||
+      window.location.protocol === "file:";
+    let apiBase = (
+      window.API_BASE_URL ||
+      apiQueryValue ||
+      window.localStorage.getItem("apiBaseUrl") ||
+      (localHosts.includes(hostname) || hostname.endsWith(".onrender.com") || !isStaticHost
+        ? window.location.origin
+        : "")
+    ).trim().replace(/\/+$/, "");
 
-    function showMessage(element, message, isError = false) {
+    apiUrlInput.value = apiBase;
+    if (!apiBase) setApiStatus("error", "Configura API");
+
+    function showMessage(element, message, kind = "") {
       element.textContent = message;
-      element.className = `message ${isError ? "error" : "success"}`;
+      element.className = `inline-message ${kind}`;
     }
 
-    predictionForm.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      const file = document.querySelector("#image-file").files[0];
-      if (!file) {
-        showMessage(predictionMessage, "Selecciona una imagen.", true);
+    function setApiStatus(state, label) {
+      apiStatus.dataset.state = state;
+      apiStatusText.textContent = label;
+    }
+
+    function endpoint(path) {
+      if (!apiBase) {
+        throw new Error("Configura la URL de la API y prueba la conexión.");
+      }
+      return `${apiBase}${path}`;
+    }
+
+    async function testConnection() {
+      const button = document.querySelector("#test-api-button");
+      if (!apiBase) {
+        setApiStatus("error", "Configura API");
         return;
       }
-
-      const formData = new FormData();
-      formData.append("file", file);
-      const includeGradcam = document.querySelector("#include-gradcam").checked;
-      predictionButton.disabled = true;
-      showMessage(predictionMessage, "Procesando imagen...");
-
+      button.disabled = true;
+      setApiStatus("unknown", "Conectando…");
       try {
-        const response = await fetch(`/predict?include_gradcam=${includeGradcam}`, {
+        const response = await fetch(endpoint("/health"));
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const health = await response.json();
+        if (health.model_loaded) {
+          setApiStatus("connected", "Conectado");
+        } else {
+          setApiStatus("no-model", "Sin modelo");
+        }
+      } catch (error) {
+        setApiStatus("error", "Error de conexión");
+      } finally {
+        button.disabled = false;
+      }
+    }
+
+    apiForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const value = apiUrlInput.value.trim().replace(/\/+$/, "");
+      if (!/^https?:\/\//i.test(value)) {
+        setApiStatus("error", "URL inválida");
+        return;
+      }
+      apiBase = value;
+      window.localStorage.setItem("apiBaseUrl", apiBase);
+      setApiStatus("unknown", "URL guardada");
+      testConnection();
+    });
+    document.querySelector("#test-api-button").addEventListener("click", testConnection);
+
+    const fileInput = document.querySelector("#image-file");
+    const dropZone = document.querySelector("#drop-zone");
+    const imagePreview = document.querySelector("#image-preview");
+    const dropContent = document.querySelector("#drop-content");
+    const previewCaption = document.querySelector("#preview-caption");
+    const fileName = document.querySelector("#file-name");
+    let selectedFile = null;
+    let previewObjectUrl = null;
+    let currentPredictionId = null;
+
+    function chooseFile(file) {
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        showMessage(document.querySelector("#prediction-message"), "Selecciona un archivo de imagen válido.", "error");
+        return;
+      }
+      selectedFile = file;
+      if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+      previewObjectUrl = URL.createObjectURL(file);
+      imagePreview.src = previewObjectUrl;
+      imagePreview.hidden = false;
+      dropContent.hidden = true;
+      previewCaption.hidden = false;
+      previewCaption.textContent = file.name;
+      dropZone.classList.add("has-image");
+      fileName.textContent = file.name;
+      currentPredictionId = null;
+      document.querySelector("#prediction-result").hidden = true;
+      document.querySelector("#feedback-state").textContent =
+        "Realiza una predicción para habilitar el feedback.";
+      document.querySelector("#feedback-state").classList.remove("ready");
+      document.querySelector("#real-label").disabled = true;
+      document.querySelector("#comment").disabled = true;
+      document.querySelector("#feedback-button").disabled = true;
+      document.querySelector("#feedback-message").textContent = "";
+      const previousGradcam = document.querySelector("#gradcam-image");
+      previousGradcam.removeAttribute("src");
+      previousGradcam.hidden = true;
+      const gradcamEmpty = document.querySelector("#gradcam-empty");
+      gradcamEmpty.hidden = false;
+      gradcamEmpty.textContent = "Ejecuta el análisis para ver una explicación visual de la imagen seleccionada.";
+      document.querySelector("#gradcam-note").textContent =
+        "El mapa de activación es opcional y puede aumentar el tiempo de respuesta.";
+      document.querySelector("#prediction-message").textContent = "";
+    }
+
+    fileInput.addEventListener("change", () => chooseFile(fileInput.files[0]));
+    ["dragenter", "dragover"].forEach((eventName) => {
+      dropZone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropZone.classList.add("is-dragging");
+      });
+    });
+    ["dragleave", "drop"].forEach((eventName) => {
+      dropZone.addEventListener(eventName, (event) => {
+        event.preventDefault();
+        dropZone.classList.remove("is-dragging");
+      });
+    });
+    dropZone.addEventListener("drop", (event) => {
+      const file = event.dataTransfer.files[0];
+      chooseFile(file);
+    });
+
+    function renderProbabilities(probabilities) {
+      const list = document.querySelector("#probabilities");
+      list.replaceChildren();
+      Object.entries(probabilities).forEach(([name, value]) => {
+        const percentage = Math.max(0, Math.min(100, Number(value) * 100));
+        const row = document.createElement("div");
+        row.className = "prob-row";
+        const label = document.createElement("span");
+        label.className = "prob-name";
+        label.textContent = name;
+        const track = document.createElement("div");
+        track.className = "prob-track";
+        const fill = document.createElement("div");
+        fill.className = `prob-fill ${name}`;
+        fill.style.width = `${percentage}%`;
+        track.append(fill);
+        const amount = document.createElement("span");
+        amount.className = "prob-value";
+        amount.textContent = `${percentage.toFixed(1)}%`;
+        row.append(label, track, amount);
+        list.append(row);
+      });
+    }
+
+    function renderAlerts(result) {
+      const alerts = document.querySelector("#alerts");
+      alerts.replaceChildren();
+      if (result.baja_confianza) {
+        const alert = document.createElement("div");
+        alert.className = "alert danger";
+        alert.innerHTML = '<div class="alert-title">Confianza por debajo del umbral</div>Interpreta esta predicción con precaución.';
+        alerts.append(alert);
+      }
+      if (result.drift?.drift_detected) {
+        const alert = document.createElement("div");
+        alert.className = "alert";
+        const reasons = (result.drift.reasons || []).join(", ") || "cambio detectado";
+        alert.innerHTML = '<div class="alert-title">Posible drift de datos</div>';
+        const detail = document.createElement("span");
+        detail.textContent = `Razones: ${reasons}`;
+        alert.append(detail);
+        alerts.append(alert);
+      }
+    }
+
+    function renderPrediction(result) {
+      currentPredictionId = result.prediction_id;
+      document.querySelector("#prediction-result").hidden = false;
+      document.querySelector("#predicted-class").textContent = result.clase_predicha;
+      document.querySelector("#fruit-mark").className = `fruit-mark ${result.clase_predicha}`;
+      document.querySelector("#confidence").textContent = `${(Number(result.confianza) * 100).toFixed(1)}%`;
+      document.querySelector("#latency").textContent = `${Number(result.latency_ms).toFixed(1)} ms`;
+      document.querySelector("#prediction-id").textContent = result.prediction_id;
+      document.querySelector("#prediction-id").title = result.prediction_id;
+      renderProbabilities(result.probabilidades);
+      renderAlerts(result);
+
+      const gradcamImage = document.querySelector("#gradcam-image");
+      const gradcamEmpty = document.querySelector("#gradcam-empty");
+      const gradcamNote = document.querySelector("#gradcam-note");
+      if (result.gradcam_base64) {
+        gradcamImage.src = result.gradcam_base64.startsWith("data:")
+          ? result.gradcam_base64
+          : `data:image/png;base64,${result.gradcam_base64}`;
+        gradcamImage.hidden = false;
+        gradcamEmpty.hidden = true;
+        gradcamNote.textContent = "Mapa Grad-CAM generado para esta predicción.";
+      } else {
+        gradcamImage.removeAttribute("src");
+        gradcamImage.hidden = true;
+        gradcamEmpty.hidden = false;
+        gradcamEmpty.textContent = document.querySelector("#include-gradcam").checked
+          ? "No se pudo generar Grad-CAM para esta predicción."
+          : "Grad-CAM no se solicitó. Activa la opción antes de analizar para generar una explicación visual.";
+        gradcamNote.textContent = "La inferencia se completó aunque el mapa no esté disponible.";
+      }
+
+      const feedbackState = document.querySelector("#feedback-state");
+      feedbackState.textContent = `Feedback habilitado · ${result.prediction_id}`;
+      feedbackState.classList.add("ready");
+      document.querySelector("#real-label").disabled = false;
+      document.querySelector("#comment").disabled = false;
+      document.querySelector("#feedback-button").disabled = false;
+    }
+
+    document.querySelector("#predict-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const message = document.querySelector("#prediction-message");
+      if (!selectedFile) {
+        showMessage(message, "Carga o arrastra una imagen antes de analizar.", "error");
+        return;
+      }
+      const button = document.querySelector("#analyze-button");
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      document.querySelector("#analyze-button-label").textContent = "Analizando…";
+      showMessage(message, "Procesando imagen y calculando probabilidades…");
+      try {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        const includeGradcam = document.querySelector("#include-gradcam").checked;
+        const response = await fetch(endpoint(`/predict?include_gradcam=${includeGradcam}`), {
           method: "POST",
           body: formData
         });
         const result = await response.json();
-        if (!response.ok) {
-          throw new Error(result.detail || "No se pudo procesar la imagen.");
-        }
-
-        currentPredictionId = result.prediction_id;
-        predictionResult.hidden = false;
-        document.querySelector("#predicted-class").textContent = result.clase_predicha;
-        document.querySelector("#confidence").textContent =
-          `${(result.confianza * 100).toFixed(1)}%`;
-        document.querySelector("#latency").textContent =
-          `${Number(result.latency_ms).toFixed(1)} ms`;
-        document.querySelector("#prediction-id").textContent = currentPredictionId;
-
-        const probabilities = document.querySelector("#probabilities");
-        probabilities.replaceChildren();
-        Object.entries(result.probabilidades).forEach(([name, value]) => {
-          const percentage = Math.max(0, Math.min(100, Number(value) * 100));
-          const row = document.createElement("div");
-          row.className = "probability";
-          const heading = document.createElement("div");
-          heading.className = "probability-heading";
-          const label = document.createElement("strong");
-          label.textContent = name;
-          const amount = document.createElement("span");
-          amount.textContent = `${percentage.toFixed(1)}%`;
-          const bar = document.createElement("div");
-          bar.className = "bar";
-          const fill = document.createElement("span");
-          fill.style.width = `${percentage}%`;
-          bar.append(fill);
-          heading.append(label, amount);
-          row.append(heading, bar);
-          probabilities.append(row);
-        });
-
-        const alerts = document.querySelector("#alerts");
-        alerts.replaceChildren();
-        if (result.baja_confianza) {
-          const alert = document.createElement("div");
-          alert.className = "alert danger";
-          alert.textContent = "La predicción tiene baja confianza.";
-          alerts.append(alert);
-        }
-        if (result.drift?.drift_detected) {
-          const alert = document.createElement("div");
-          alert.className = "alert";
-          alert.textContent = `Posible drift: ${(result.drift.reasons || []).join(", ") || "cambio detectado"}`;
-          alerts.append(alert);
-        }
-
-        const gradcam = document.querySelector("#gradcam-image");
-        if (result.gradcam_base64) {
-          gradcam.src = result.gradcam_base64.startsWith("data:")
-            ? result.gradcam_base64
-            : `data:image/png;base64,${result.gradcam_base64}`;
-          gradcam.hidden = false;
-        } else {
-          gradcam.removeAttribute("src");
-          gradcam.hidden = true;
-        }
-        showMessage(predictionMessage, "Predicción completada.");
+        if (response.status === 503) setApiStatus("no-model", "Sin modelo");
+        if (!response.ok) throw new Error(result.detail || `La API respondió ${response.status}.`);
+        renderPrediction(result);
+        showMessage(message, "Análisis completado correctamente.", "success");
+        if (apiStatus.dataset.state === "unknown") testConnection();
       } catch (error) {
-        showMessage(predictionMessage, error.message, true);
+        showMessage(message, error.message, "error");
+        if (error instanceof TypeError) setApiStatus("error", "Error de conexión");
       } finally {
-        predictionButton.disabled = false;
+        button.disabled = false;
+        button.setAttribute("aria-busy", "false");
+        document.querySelector("#analyze-button-label").textContent = "Analizar imagen";
       }
     });
 
@@ -251,55 +635,62 @@
       event.preventDefault();
       const message = document.querySelector("#feedback-message");
       if (!currentPredictionId) {
-        showMessage(message, "Primero realiza una predicción.", true);
+        showMessage(message, "Primero realiza una predicción.", "error");
         return;
       }
-
       const button = document.querySelector("#feedback-button");
       button.disabled = true;
       try {
-        const response = await fetch("/feedback", {
+        const response = await fetch(endpoint("/feedback"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prediction_id: currentPredictionId,
             etiqueta_real: document.querySelector("#real-label").value,
-            comentario: document.querySelector("#comment").value || null
+            comentario: document.querySelector("#comment").value.trim() || null
           })
         });
         const result = await response.json();
-        if (!response.ok) {
-          throw new Error(result.detail || "No se pudo guardar la retroalimentación.");
-        }
-        showMessage(message, `Retroalimentación guardada. Total: ${result.total_feedbacks}.`);
+        if (!response.ok) throw new Error(result.detail || `La API respondió ${response.status}.`);
+        showMessage(message, `Feedback registrado. Total recibido: ${result.total_feedbacks}.`, "success");
+        document.querySelector("#comment").value = "";
       } catch (error) {
-        showMessage(message, error.message, true);
+        showMessage(message, error.message, "error");
       } finally {
         button.disabled = false;
       }
     });
 
-    document.querySelector("#metrics-button").addEventListener("click", async () => {
-      const output = document.querySelector("#metrics-output");
-      output.textContent = "Consultando...";
+    document.querySelector("#metrics-button").addEventListener("click", async (event) => {
+      const button = event.currentTarget;
+      const message = document.querySelector("#metrics-message");
+      button.disabled = true;
+      showMessage(message, "Actualizando métricas…");
       try {
-        const response = await fetch("/metrics");
+        const response = await fetch(endpoint("/metrics"));
         const metrics = await response.json();
-        if (!response.ok) {
-          throw new Error(metrics.detail || "No se pudieron consultar las métricas.");
-        }
-        const agreement = metrics.feedback_agreement_rate;
-        output.textContent = [
-          `Predicciones: ${metrics.total_predictions}`,
-          `Latencia promedio: ${Number(metrics.avg_latency_ms).toFixed(1)} ms`,
-          `Confianza promedio: ${(Number(metrics.avg_confidence) * 100).toFixed(1)}%`,
-          `Eventos de drift: ${metrics.drift_events_count}`,
-          `Acuerdo en feedback: ${agreement == null ? "Sin datos" : `${(agreement * 100).toFixed(1)}%`}`
-        ].join("\n");
+        if (!response.ok) throw new Error(metrics.detail || `La API respondió ${response.status}.`);
+        document.querySelector("#metric-predictions").textContent = metrics.total_predictions;
+        document.querySelector("#metric-latency").textContent =
+          `${Number(metrics.avg_latency_ms).toFixed(1)} ms`;
+        document.querySelector("#metric-confidence").textContent =
+          `${(Number(metrics.avg_confidence) * 100).toFixed(1)}%`;
+        document.querySelector("#metric-drift").textContent = metrics.drift_events_count;
+        document.querySelector("#metric-agreement").textContent =
+          metrics.feedback_agreement_rate == null
+            ? "—"
+            : `${(Number(metrics.feedback_agreement_rate) * 100).toFixed(1)}%`;
+        document.querySelector("#metric-low-confidence").textContent =
+          `${(Number(metrics.low_confidence_rate) * 100).toFixed(1)}%`;
+        showMessage(message, "Métricas actualizadas.", "success");
       } catch (error) {
-        output.textContent = error.message;
+        showMessage(message, error.message, "error");
+      } finally {
+        button.disabled = false;
       }
     });
+
+    if (apiBase) testConnection();
   </script>
 </body>
 </html>

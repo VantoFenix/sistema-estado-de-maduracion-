@@ -59,6 +59,13 @@ def _ensure_baseline(baseline_path: Path) -> dict:
     return baseline
 
 
+def initialize_monitoring_storage() -> None:
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    for log_path in (PREDICTIONS_LOG, FEEDBACK_LOG):
+        log_path.touch(exist_ok=True)
+    _ensure_baseline(BASELINE_STATS)
+
+
 def evaluate_drift_and_confidence(
     confianza: float,
     image_stats: dict,

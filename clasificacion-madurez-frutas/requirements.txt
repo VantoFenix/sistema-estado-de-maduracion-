@@ -10,5 +10,3 @@ uvicorn[standard]
 python-multipart
 pydantic
 pytest
-# pyspark==3.5.1
-# kafka-python
