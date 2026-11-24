@@ -458,6 +458,39 @@
       return `${apiBase}${path}`;
     }
 
+    async function requestJson(path, options) {
+      const url = endpoint(path);
+      let response;
+      try {
+        response = await fetch(url, options);
+      } catch {
+        setApiStatus("error");
+        throw new Error("No se pudo conectar con el servidor. Vuelve a intentarlo.");
+      }
+
+      const contentType = (response.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+      const isJson = contentType === "application/json" || contentType.endsWith("+json");
+      const result = isJson ? await response.json().catch(() => null) : null;
+      if (response.ok && result && typeof result === "object" && !Array.isArray(result)) return result;
+
+      if (!response.ok && typeof result?.detail === "string") {
+        if (response.status === 503 && result.detail === "Modelo no disponible") {
+          setApiStatus("no-model");
+        }
+        throw new Error(result.detail);
+      }
+      if ([502, 503, 504].includes(response.status)) {
+        setApiStatus("error");
+        throw new Error("El servicio está arrancando o no está disponible. Espera un momento y vuelve a intentarlo.");
+      }
+      if (response.status === 413) {
+        throw new Error("La imagen es demasiado grande. Prueba con un archivo más pequeño.");
+      }
+      if (!response.ok) throw new Error(`El servidor respondió con un error (HTTP ${response.status}).`);
+      setApiStatus("error");
+      throw new Error("El servidor devolvió una respuesta inesperada. Vuelve a intentarlo.");
+    }
+
     async function testConnection() {
       const button = document.querySelector("#test-api-button");
       if (!apiBase) {
@@ -467,11 +500,7 @@
       button.disabled = true;
       setApiStatus("unknown", "Conectando…");
       try {
-        const response = await fetch(endpoint("/health"));
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        const health = await response.json();
+        const health = await requestJson("/health");
         if (health.status !== "ok") {
           throw new Error("Respuesta de salud no válida.");
         }
@@ -694,19 +723,15 @@
         const formData = new FormData();
         formData.append("file", selectedFile);
         const includeGradcam = document.querySelector("#include-gradcam").checked;
-        const response = await fetch(endpoint(`/predict?include_gradcam=${includeGradcam}`), {
+        const result = await requestJson(`/predict?include_gradcam=${includeGradcam}`, {
           method: "POST",
           body: formData
         });
-        const result = await response.json();
-        if (response.status === 503) setApiStatus("no-model");
-        if (!response.ok) throw new Error(result.detail || `La API respondió ${response.status}.`);
         renderPrediction(result);
         showMessage(message, "Análisis completado correctamente.", "success");
-        if (apiStatus.dataset.state === "unknown") testConnection();
+        setApiStatus("connected");
       } catch (error) {
         showMessage(message, error.message, "error");
-        if (error instanceof TypeError) setApiStatus("error");
       } finally {
         button.disabled = false;
         button.setAttribute("aria-busy", "false");
@@ -728,7 +753,7 @@
       const button = document.querySelector("#feedback-button");
       button.disabled = true;
       try {
-        const response = await fetch(endpoint("/feedback"), {
+        const result = await requestJson("/feedback", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -737,8 +762,6 @@
             comentario: document.querySelector("#comment").value.trim() || null
           })
         });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.detail || `La API respondió ${response.status}.`);
         showMessage(message, `Feedback registrado. Total recibido: ${result.total_feedbacks}.`, "success");
         document.querySelector("#comment").value = "";
       } catch (error) {
@@ -754,9 +777,7 @@
       button.disabled = true;
       showMessage(message, "Actualizando métricas…");
       try {
-        const response = await fetch(endpoint("/metrics"));
-        const metrics = await response.json();
-        if (!response.ok) throw new Error(metrics.detail || `La API respondió ${response.status}.`);
+        const metrics = await requestJson("/metrics");
         document.querySelector("#metric-predictions").textContent = metrics.total_predictions;
         document.querySelector("#metric-latency").textContent =
           `${Number(metrics.avg_latency_ms).toFixed(1)} ms`;
