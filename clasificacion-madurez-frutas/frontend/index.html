@@ -37,10 +37,14 @@
     .brand { display: flex; align-items: center; gap: 12px; min-width: 210px; }
     .brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid #3b8c65; border-radius: 12px; color: var(--green); background: #143427; }
     .brand-name { font-size: .96rem; font-weight: 750; letter-spacing: .01em; }
-    .brand-subtitle { margin-top: 2px; color: var(--muted); font-size: .72rem; letter-spacing: .11em; text-transform: uppercase; }
-    .connection { display: flex; align-items: center; gap: 9px; width: min(760px, 100%); }
-    .api-form { display: flex; flex: 1; align-items: center; gap: 8px; min-width: 0; }
-    .api-form input { width: 100%; min-width: 120px; }
+    .brand-subtitle { margin-top: 3px; color: var(--muted); font-size: .74rem; letter-spacing: .025em; }
+    .connection { display: flex; align-items: center; gap: 10px; }
+    .api-config-panel { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 14px 0 0; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: #121c2c; }
+    .api-config-copy { min-width: 180px; }
+    .api-config-title { margin: 0; color: #e2e8f0; font-size: .84rem; font-weight: 700; }
+    .api-config-active { max-width: 320px; overflow: hidden; margin: 5px 0 0; color: var(--muted); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+    .api-form { display: flex; flex: 1; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+    .api-form input { width: min(100%, 340px); min-width: 120px; }
     .control { min-height: 40px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; outline: none; color: var(--text); background: #0f192a; }
     .control:focus { border-color: #4b83bd; box-shadow: 0 0 0 3px #3b82f633; }
     .button { display: inline-flex; min-height: 40px; align-items: center; justify-content: center; gap: 8px; padding: 9px 14px; border: 1px solid transparent; border-radius: 9px; color: #07140c; background: var(--green); font-size: .86rem; font-weight: 750; transition: background .15s, transform .15s; }
@@ -48,6 +52,7 @@
     .button-quiet { border-color: var(--line); color: #d7e2ef; background: #172338; }
     .button-quiet:hover:not(:disabled) { background: #24344e; }
     .button-icon { width: 40px; padding: 0; }
+    .button-compact { min-height: 36px; padding: 7px 11px; font-size: .78rem; }
     .status { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 7px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: #111b2c; font-size: .76rem; font-weight: 650; white-space: nowrap; }
     .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #64748b; box-shadow: 0 0 0 3px #64748b22; }
     .status[data-state="connected"] { border-color: #276344; color: #a7f3c2; background: #10291f; }
@@ -109,7 +114,9 @@
     .fruit-mark { display: grid; width: 40px; height: 40px; flex: 0 0 auto; place-items: center; border-radius: 12px; color: var(--green); background: #183527; }
     .fruit-mark.podrida { color: var(--red); background: #3a202a; }
     .fruit-mark.verde { color: #a3e635; background: #2c351b; }
-    .result-name { margin: 0; color: #f1f5f9; font-size: 1.13rem; font-weight: 760; }
+    .result-name { display: inline-flex; margin: 0; padding: 4px 9px; border: 1px solid #32905a; border-radius: 999px; color: #a7f3c2; background: #173525; font-size: .88rem; font-weight: 760; }
+    .result-name.podrida { border-color: #a84959; color: #ffabb7; background: #351e27; }
+    .result-name.verde { border-color: #739c36; color: #d9f99d; background: #29341b; }
     .result-caption { margin: 3px 0 0; color: var(--muted); font-size: .72rem; }
     .confidence-value { color: #e8f4ec; font-size: 1.45rem; font-variant-numeric: tabular-nums; font-weight: 760; }
     .confidence-label { margin-top: 2px; color: var(--muted); font-size: .68rem; text-align: right; text-transform: uppercase; }
@@ -143,27 +150,39 @@
     .kpi-label { color: var(--muted); font-size: .72rem; }
     .kpi-value { margin-top: 10px; color: #eff6ff; font-size: 1.36rem; font-variant-numeric: tabular-nums; font-weight: 750; letter-spacing: -.025em; }
     .kpi-unit { margin-left: 4px; color: #a1afc2; font-size: .72rem; font-weight: 550; letter-spacing: 0; }
-    .feedback-disabled { margin: 0 0 13px; padding: 9px 11px; border: 1px solid #35445a; border-radius: 8px; color: #9eacc0; background: #121c2c; font-size: .74rem; }
-    .feedback-disabled.ready { border-color: #286044; color: #a7f3c2; background: #11291f; }
+    .feedback-state { margin: 0; color: #9eacc0; font-size: .76rem; }
+    .feedback-state.ready { color: #a7f3c2; }
+    .feedback-form[hidden] { display: none; }
+    .label-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .label-choice { min-height: 40px; border: 1px solid #39485e; border-radius: 9px; color: #b7c4d5; background: #111b2b; font-size: .8rem; font-weight: 700; }
+    .label-choice:hover { border-color: #667991; color: white; }
+    .label-choice[data-label="madura"][aria-pressed="true"] { border-color: #32905a; color: #a7f3c2; background: #173525; }
+    .label-choice[data-label="podrida"][aria-pressed="true"] { border-color: #a84959; color: #ffabb7; background: #351e27; }
+    .label-choice[data-label="verde"][aria-pressed="true"] { border-color: #739c36; color: #d9f99d; background: #29341b; }
     .form-label { display: block; margin: 12px 0 6px; color: #c5d0df; font-size: .77rem; font-weight: 650; }
-    select, textarea { width: 100%; border: 1px solid #34445b; border-radius: 9px; outline: none; color: var(--text); background: #0f1929; }
-    select { min-height: 41px; padding: 9px 11px; }
+    textarea { width: 100%; border: 1px solid #34445b; border-radius: 9px; outline: none; color: var(--text); background: #0f1929; }
     textarea { min-height: 78px; padding: 10px 11px; resize: vertical; }
-    select:focus, textarea:focus { border-color: #4b83bd; box-shadow: 0 0 0 3px #3b82f633; }
+    textarea:focus { border-color: #4b83bd; box-shadow: 0 0 0 3px #3b82f633; }
     .feedback-submit { width: 100%; margin-top: 13px; }
+    [hidden] { display: none !important; }
     footer { padding: 0 0 25px; color: #60728b; font-size: .7rem; text-align: center; }
 
     @media (max-width: 960px) {
       .shell { width: min(100% - 28px, 760px); }
       .topbar { align-items: flex-start; flex-direction: column; padding: 15px 0; }
-      .connection { width: 100%; }
+      .connection { width: 100%; justify-content: space-between; }
+      .api-config-panel { align-items: flex-start; flex-direction: column; }
+      .api-form { width: 100%; justify-content: stretch; }
+      .api-form input { flex: 1; }
       .workspace { grid-template-columns: 1fr; }
     }
     @media (max-width: 560px) {
       .shell { width: calc(100% - 22px); }
-      .connection { align-items: stretch; flex-wrap: wrap; }
-      .api-form { flex: 1 1 100%; }
-      .connection > .button { flex: 1; }
+      .connection { flex-wrap: wrap; }
+      .api-config-panel { gap: 10px; }
+      .api-form { align-items: stretch; flex-wrap: wrap; }
+      .api-form input { flex: 1 1 100%; }
+      .api-form button { flex: 1; }
       .intro { align-items: flex-start; flex-direction: column; padding-top: 22px; }
       .card-head, .card-body { padding-right: 14px; padding-left: 14px; }
       .drop-zone { min-height: 190px; }
@@ -189,33 +208,43 @@
         </div>
         <div>
           <div class="brand-name">Madurez Vision</div>
-          <div class="brand-subtitle">Inference console</div>
+          <div class="brand-subtitle">Frutas y Verduras · 3 Estados</div>
         </div>
       </div>
       <div class="connection" aria-label="Conexión con API">
         <span id="api-status" class="status" data-state="unknown" role="status">
-          <span class="status-dot"></span><span id="api-status-text">Sin probar</span>
+          <span class="status-dot"></span><span id="api-status-text">Sin conexión</span>
         </span>
-        <form id="api-config-form" class="api-form">
-          <input id="api-url" class="control" type="url" inputmode="url" aria-label="URL base de la API" placeholder="https://tu-api.onrender.com">
-          <button class="button button-quiet" type="submit">Guardar</button>
-        </form>
+        <button id="api-config-toggle" class="button button-quiet button-compact" type="button" aria-expanded="false" aria-controls="api-config-panel">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" stroke="currentColor" stroke-width="1.6"/><path d="m19.4 15 .1.1a1.8 1.8 0 1 1-2.5 2.5l-.1-.1a1.8 1.8 0 0 0-3 .9v.2a1.8 1.8 0 1 1-3.6 0v-.2a1.8 1.8 0 0 0-3-.9l-.1.1a1.8 1.8 0 1 1-2.5-2.5l.1-.1a1.8 1.8 0 0 0-.9-3H3.7a1.8 1.8 0 1 1 0-3.6h.2a1.8 1.8 0 0 0 .9-3l-.1-.1a1.8 1.8 0 1 1 2.5-2.5l.1.1a1.8 1.8 0 0 0 3-.9v-.2a1.8 1.8 0 1 1 3.6 0v.2a1.8 1.8 0 0 0 3 .9l.1-.1a1.8 1.8 0 1 1 2.5 2.5l-.1.1a1.8 1.8 0 0 0 .9 3h.2a1.8 1.8 0 1 1 0 3.6h-.2a1.8 1.8 0 0 0-.9 3Z" stroke="currentColor" stroke-width="1.3"/></svg>
+          Configurar API
+        </button>
+      </div>
+    </header>
+    <section id="api-config-panel" class="api-config-panel" hidden>
+      <div class="api-config-copy">
+        <p class="api-config-title">Conexión del servicio</p>
+        <p id="api-current-url" class="api-config-active"></p>
+      </div>
+      <form id="api-config-form" class="api-form">
+        <input id="api-url" class="control" type="url" inputmode="url" aria-label="URL base de la API" placeholder="https://tu-servicio.onrender.com">
+        <button class="button button-quiet" type="submit">Guardar</button>
         <button id="test-api-button" class="button button-quiet" type="button">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 7v5h-5M4.9 9a7.5 7.5 0 0 1 12.6-2L20 12M4 17v-5h5m10.1 3a7.5 7.5 0 0 1-12.6 2L4 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Probar conexión
         </button>
-      </div>
-    </header>
+      </form>
+    </section>
 
     <section class="intro">
       <div>
         <p class="eyebrow">Computer vision · MLOps</p>
-        <h1>Clasificación de madurez</h1>
-        <p class="intro-copy">Analiza el estado de frutas y vegetales, inspecciona la explicación visual del modelo y aporta feedback para mejorar la calidad.</p>
+        <h1>Frutas y verduras, tres estados</h1>
+        <p class="intro-copy">Analiza frutas y verduras y predice uno de tres estados de madurez: madura, podrida o verde.</p>
       </div>
       <div class="model-chip">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4.5 7v10l7.5 4 7.5-4V7L12 3Z" stroke="currentColor" stroke-width="1.6"/><path d="m4.8 7.2 7.2 4 7.2-4M12 11.2V21" stroke="currentColor" stroke-width="1.6"/></svg>
-        CNN · 3 clases
+        Madura · Podrida · Verde
       </div>
     </section>
 
@@ -225,19 +254,19 @@
           <div class="card-head">
             <div>
               <h2 id="capture-title" class="card-title"><span class="section-icon">01</span> Captura y análisis</h2>
-              <p class="card-subtitle">Carga una imagen para estimar su estado.</p>
+              <p class="card-subtitle">Carga una imagen de fruta o verdura para clasificar su madurez.</p>
             </div>
             <span class="step-label">Predict</span>
           </div>
           <div class="card-body">
             <form id="predict-form">
               <div id="drop-zone" class="drop-zone">
-                <input id="image-file" type="file" accept="image/*" aria-label="Seleccionar imagen de fruta o vegetal" required>
+                <input id="image-file" type="file" accept="image/*" aria-label="Seleccionar imagen de fruta o verdura" required>
                 <div id="drop-content" class="drop-content">
                   <span class="upload-symbol">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                   </span>
-                  <p class="drop-title">Arrastra una imagen aquí</p>
+                  <p class="drop-title">Arrastra una fruta o verdura aquí</p>
                   <p class="drop-help">o haz clic para explorar · PNG, JPG, WEBP</p>
                 </div>
                 <img id="image-preview" class="preview" alt="Vista previa de la imagen seleccionada" hidden>
@@ -246,17 +275,17 @@
               <div class="upload-meta"><span id="file-name">Ninguna imagen seleccionada</span><span>RGB · 224 × 224</span></div>
               <div class="option-row">
                 <div>
-                  <div class="option-title">Generar mapa Grad-CAM</div>
+                  <div class="option-title">Incluir explicación visual Grad-CAM</div>
                   <div class="option-note">Puede incrementar la latencia y el uso de RAM.</div>
                 </div>
-                <label class="toggle" aria-label="Incluir Grad-CAM">
+                <label class="toggle" aria-label="Incluir explicación visual Grad-CAM">
                   <input id="include-gradcam" type="checkbox" role="switch">
                   <span class="toggle-track"></span>
                 </label>
               </div>
               <button id="analyze-button" class="button analyze-button" type="submit">
                 <span class="button-spinner" aria-hidden="true"></span>
-                <span id="analyze-button-label">Analizar imagen</span>
+                <span id="analyze-button-label">Analizar madurez</span>
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
             </form>
@@ -301,17 +330,17 @@
             <span class="step-label">Human review</span>
           </div>
           <div class="card-body">
-            <p id="feedback-state" class="feedback-disabled">Realiza una predicción para habilitar el feedback.</p>
-            <form id="feedback-form">
-              <label class="form-label" for="real-label">Etiqueta real</label>
-              <select id="real-label" required disabled>
-                <option value="madura">madura</option>
-                <option value="podrida">podrida</option>
-                <option value="verde">verde</option>
-              </select>
+            <p id="feedback-state" class="feedback-state">Completa una predicción para enviar feedback.</p>
+            <form id="feedback-form" class="feedback-form" hidden>
+              <label class="form-label">Etiqueta real</label>
+              <div class="label-choices" role="group" aria-label="Selecciona la etiqueta real">
+                <button class="label-choice" type="button" data-label="madura" aria-pressed="false">madura</button>
+                <button class="label-choice" type="button" data-label="podrida" aria-pressed="false">podrida</button>
+                <button class="label-choice" type="button" data-label="verde" aria-pressed="false">verde</button>
+              </div>
               <label class="form-label" for="comment">Comentario <span style="color:var(--muted);font-weight:400">(opcional)</span></label>
-              <textarea id="comment" maxlength="500" placeholder="Añade un detalle útil sobre esta muestra…" disabled></textarea>
-              <button id="feedback-button" class="button button-quiet feedback-submit" type="submit" disabled>Enviar retroalimentación</button>
+              <textarea id="comment" maxlength="500" placeholder="Añade un detalle útil sobre esta muestra…"></textarea>
+              <button id="feedback-button" class="button button-quiet feedback-submit" type="submit" disabled>Enviar feedback</button>
             </form>
             <p id="feedback-message" class="inline-message" role="status" aria-live="polite"></p>
           </div>
@@ -371,33 +400,55 @@
     const apiStatusText = document.querySelector("#api-status-text");
     const apiUrlInput = document.querySelector("#api-url");
     const apiForm = document.querySelector("#api-config-form");
+    const apiConfigPanel = document.querySelector("#api-config-panel");
+    const apiConfigToggle = document.querySelector("#api-config-toggle");
+    const apiCurrentUrl = document.querySelector("#api-current-url");
     const apiQueryValue = new URLSearchParams(window.location.search).get("api");
     const hostname = window.location.hostname.toLowerCase();
     const localHosts = ["localhost", "127.0.0.1", "::1"];
     const staticHosts = [".vercel.app", ".netlify.app", ".pages.dev", ".github.io"];
     const isStaticHost = staticHosts.some((suffix) => hostname.endsWith(suffix)) ||
       window.location.protocol === "file:";
-    let apiBase = (
-      window.API_BASE_URL ||
-      apiQueryValue ||
-      window.localStorage.getItem("apiBaseUrl") ||
-      (localHosts.includes(hostname) || hostname.endsWith(".onrender.com") || !isStaticHost
-        ? window.location.origin
-        : "")
-    ).trim().replace(/\/+$/, "");
+    const savedApiValue = window.localStorage.getItem("apiBaseUrl");
+    const configuredApi = window.API_BASE_URL || apiQueryValue || savedApiValue;
+    const isLocalHttp = ["http:", "https:"].includes(window.location.protocol) &&
+      localHosts.includes(hostname);
+    let apiBase = "";
+
+    if (window.location.protocol === "file:") {
+      apiBase = configuredApi || "http://127.0.0.1:8000";
+    } else if (isLocalHttp) {
+      apiBase = window.location.origin;
+    } else {
+      apiBase = configuredApi ||
+        (hostname.endsWith(".onrender.com") || !isStaticHost ? window.location.origin : "");
+    }
+    apiBase = apiBase.trim().replace(/\/+$/, "");
 
     apiUrlInput.value = apiBase;
-    if (!apiBase) setApiStatus("error", "Configura API");
+    apiCurrentUrl.textContent = `URL activa: ${apiBase || "sin configurar"}`;
+    if (isStaticHost && !apiBase) {
+      apiConfigPanel.hidden = false;
+      apiConfigToggle.setAttribute("aria-expanded", "true");
+    }
+
+    function setApiStatus(state, label) {
+      apiStatus.dataset.state = state;
+      const stateLabels = {
+        connected: "API conectada",
+        "no-model": "Modelo no cargado",
+        error: "Sin conexión",
+        unknown: label || "Sin conexión"
+      };
+      apiStatusText.textContent = stateLabels[state];
+    }
 
     function showMessage(element, message, kind = "") {
       element.textContent = message;
       element.className = `inline-message ${kind}`;
     }
 
-    function setApiStatus(state, label) {
-      apiStatus.dataset.state = state;
-      apiStatusText.textContent = label;
-    }
+    if (!apiBase) setApiStatus("error");
 
     function endpoint(path) {
       if (!apiBase) {
@@ -420,28 +471,39 @@
           throw new Error(`HTTP ${response.status}`);
         }
         const health = await response.json();
-        if (health.model_loaded) {
-          setApiStatus("connected", "Conectado");
+        if (health.status !== "ok") {
+          throw new Error("Respuesta de salud no válida.");
+        }
+        if (health.model_loaded === true) {
+          setApiStatus("connected");
         } else {
-          setApiStatus("no-model", "Sin modelo");
+          setApiStatus("no-model");
         }
       } catch (error) {
-        setApiStatus("error", "Error de conexión");
+        setApiStatus("error");
       } finally {
         button.disabled = false;
       }
     }
 
+    apiConfigToggle.addEventListener("click", () => {
+      const isExpanded = apiConfigToggle.getAttribute("aria-expanded") === "true";
+      apiConfigToggle.setAttribute("aria-expanded", String(!isExpanded));
+      apiConfigPanel.hidden = isExpanded;
+      if (!isExpanded) apiUrlInput.focus();
+    });
+
     apiForm.addEventListener("submit", (event) => {
       event.preventDefault();
       const value = apiUrlInput.value.trim().replace(/\/+$/, "");
       if (!/^https?:\/\//i.test(value)) {
-        setApiStatus("error", "URL inválida");
+        setApiStatus("error");
         return;
       }
       apiBase = value;
       window.localStorage.setItem("apiBaseUrl", apiBase);
-      setApiStatus("unknown", "URL guardada");
+      apiCurrentUrl.textContent = `URL activa: ${apiBase}`;
+      setApiStatus("unknown", "Probando API…");
       testConnection();
     });
     document.querySelector("#test-api-button").addEventListener("click", testConnection);
@@ -455,6 +517,7 @@
     let selectedFile = null;
     let previewObjectUrl = null;
     let currentPredictionId = null;
+    let selectedFeedbackLabel = null;
 
     function chooseFile(file) {
       if (!file) return;
@@ -473,12 +536,16 @@
       dropZone.classList.add("has-image");
       fileName.textContent = file.name;
       currentPredictionId = null;
+      selectedFeedbackLabel = null;
       document.querySelector("#prediction-result").hidden = true;
       document.querySelector("#feedback-state").textContent =
-        "Realiza una predicción para habilitar el feedback.";
+        "Completa una predicción para enviar feedback.";
       document.querySelector("#feedback-state").classList.remove("ready");
-      document.querySelector("#real-label").disabled = true;
-      document.querySelector("#comment").disabled = true;
+      document.querySelector("#feedback-form").hidden = true;
+      document.querySelectorAll(".label-choice").forEach((choice) => {
+        choice.setAttribute("aria-pressed", "false");
+      });
+      document.querySelector("#comment").value = "";
       document.querySelector("#feedback-button").disabled = true;
       document.querySelector("#feedback-message").textContent = "";
       const previousGradcam = document.querySelector("#gradcam-image");
@@ -508,6 +575,16 @@
     dropZone.addEventListener("drop", (event) => {
       const file = event.dataTransfer.files[0];
       chooseFile(file);
+    });
+
+    document.querySelectorAll(".label-choice").forEach((choice) => {
+      choice.addEventListener("click", () => {
+        selectedFeedbackLabel = choice.dataset.label;
+        document.querySelectorAll(".label-choice").forEach((option) => {
+          option.setAttribute("aria-pressed", String(option === choice));
+        });
+        document.querySelector("#feedback-button").disabled = !currentPredictionId;
+      });
     });
 
     function renderProbabilities(probabilities) {
@@ -558,7 +635,9 @@
     function renderPrediction(result) {
       currentPredictionId = result.prediction_id;
       document.querySelector("#prediction-result").hidden = false;
-      document.querySelector("#predicted-class").textContent = result.clase_predicha;
+      const predictedClass = document.querySelector("#predicted-class");
+      predictedClass.textContent = result.clase_predicha;
+      predictedClass.className = `result-name ${result.clase_predicha}`;
       document.querySelector("#fruit-mark").className = `fruit-mark ${result.clase_predicha}`;
       document.querySelector("#confidence").textContent = `${(Number(result.confianza) * 100).toFixed(1)}%`;
       document.querySelector("#latency").textContent = `${Number(result.latency_ms).toFixed(1)} ms`;
@@ -588,11 +667,14 @@
       }
 
       const feedbackState = document.querySelector("#feedback-state");
-      feedbackState.textContent = `Feedback habilitado · ${result.prediction_id}`;
+      feedbackState.textContent = "Selecciona la etiqueta real de esta fruta o verdura.";
       feedbackState.classList.add("ready");
-      document.querySelector("#real-label").disabled = false;
-      document.querySelector("#comment").disabled = false;
-      document.querySelector("#feedback-button").disabled = false;
+      document.querySelector("#feedback-form").hidden = false;
+      selectedFeedbackLabel = null;
+      document.querySelectorAll(".label-choice").forEach((choice) => {
+        choice.setAttribute("aria-pressed", "false");
+      });
+      document.querySelector("#feedback-button").disabled = true;
     }
 
     document.querySelector("#predict-form").addEventListener("submit", async (event) => {
@@ -616,18 +698,18 @@
           body: formData
         });
         const result = await response.json();
-        if (response.status === 503) setApiStatus("no-model", "Sin modelo");
+        if (response.status === 503) setApiStatus("no-model");
         if (!response.ok) throw new Error(result.detail || `La API respondió ${response.status}.`);
         renderPrediction(result);
         showMessage(message, "Análisis completado correctamente.", "success");
         if (apiStatus.dataset.state === "unknown") testConnection();
       } catch (error) {
         showMessage(message, error.message, "error");
-        if (error instanceof TypeError) setApiStatus("error", "Error de conexión");
+        if (error instanceof TypeError) setApiStatus("error");
       } finally {
         button.disabled = false;
         button.setAttribute("aria-busy", "false");
-        document.querySelector("#analyze-button-label").textContent = "Analizar imagen";
+        document.querySelector("#analyze-button-label").textContent = "Analizar madurez";
       }
     });
 
@@ -638,6 +720,10 @@
         showMessage(message, "Primero realiza una predicción.", "error");
         return;
       }
+      if (!selectedFeedbackLabel) {
+        showMessage(message, "Selecciona una etiqueta real.", "error");
+        return;
+      }
       const button = document.querySelector("#feedback-button");
       button.disabled = true;
       try {
@@ -646,7 +732,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prediction_id: currentPredictionId,
-            etiqueta_real: document.querySelector("#real-label").value,
+            etiqueta_real: selectedFeedbackLabel,
             comentario: document.querySelector("#comment").value.trim() || null
           })
         });
