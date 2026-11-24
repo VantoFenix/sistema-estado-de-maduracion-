@@ -1,0 +1,13 @@
+__pycache__/
+.venv/
+venv/
+data/raw/*
+!data/raw/.gitkeep
+logs/*
+!logs/.gitkeep
+*.h5
+*.parquet
+*.tgz
+kafka_logs/
+.ipynb_checkpoints/
+.env

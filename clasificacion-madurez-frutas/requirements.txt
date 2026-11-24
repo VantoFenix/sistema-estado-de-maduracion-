@@ -1,0 +1,14 @@
+tensorflow>=2.16.0
+numpy
+opencv-python-headless
+Pillow
+scikit-learn
+matplotlib
+seaborn
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+pytest
+# pyspark==3.5.1
+# kafka-python
