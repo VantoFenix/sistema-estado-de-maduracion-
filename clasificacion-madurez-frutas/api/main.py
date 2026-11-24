@@ -31,6 +31,9 @@ from src.inference import (
 )
 
 
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     initialize_monitoring_storage()
@@ -67,7 +70,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-static_dir = BASE_DIR / "api" / "static"
+static_dir = BASE_DIR / "frontend"
 static_file = static_dir / "index.html"
 if static_dir.is_dir():
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
@@ -100,7 +103,9 @@ async def predict(
             detail="El archivo debe ser una imagen",
         )
 
-    image_bytes = await file.read()
+    image_bytes = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(image_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="La imagen supera el límite de 10 MiB")
     if not image_bytes:
         raise HTTPException(
             status_code=400,

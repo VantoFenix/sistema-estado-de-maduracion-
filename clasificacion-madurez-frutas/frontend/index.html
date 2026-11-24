@@ -240,7 +240,7 @@
       <div>
         <p class="eyebrow">Computer vision · MLOps</p>
         <h1>Frutas y verduras, tres estados</h1>
-        <p class="intro-copy">Analiza frutas y verduras y predice uno de tres estados de madurez: madura, podrida o verde.</p>
+        <p class="intro-copy">Prototipo de clasificación visual para manzana, plátano, naranja, tomate y pimiento. Los resultados en vegetales deteriorados requieren revisión manual.</p>
       </div>
       <div class="model-chip">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3 4.5 7v10l7.5 4 7.5-4V7L12 3Z" stroke="currentColor" stroke-width="1.6"/><path d="m4.8 7.2 7.2 4 7.2-4M12 11.2V21" stroke="currentColor" stroke-width="1.6"/></svg>
@@ -396,6 +396,7 @@
   </div>
 
   <script>
+    window.API_BASE_URL = window.API_BASE_URL || ""; // Configuración de despliegue
     const apiStatus = document.querySelector("#api-status");
     const apiStatusText = document.querySelector("#api-status-text");
     const apiUrlInput = document.querySelector("#api-url");

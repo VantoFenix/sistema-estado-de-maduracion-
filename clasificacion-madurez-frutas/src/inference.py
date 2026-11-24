@@ -109,10 +109,7 @@ def predict_from_bytes(
 
     start = time.perf_counter()
     probabilities = np.asarray(
-        model.predict(
-            np.expand_dims(img_tensor_np, axis=0),
-            verbose=0,
-        )[0],
+        model(np.expand_dims(img_tensor_np, axis=0), training=False)[0],
         dtype=np.float32,
     )
     latency_ms = (time.perf_counter() - start) * 1000.0

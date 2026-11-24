@@ -11,3 +11,4 @@ logs/*
 kafka_logs/
 .ipynb_checkpoints/
 .env
+frontend/dist/

@@ -5,9 +5,10 @@ Proyecto de visión por computadora para clasificar imágenes en `madura`, `podr
 ## Arquitectura
 
 - `src/`: configuración compartida, descubrimiento y preparación de datos, CNN Keras, entrenamiento, evaluación, inferencia común y auditoría periódica de drift.
-- `api/`: servicio FastAPI, validación de esquemas, predicción, retroalimentación, métricas y registros de monitoreo. `api/static/index.html` contiene la interfaz que también puede servirse desde la API.
-- `frontend/`: copia estática reutilizable de la interfaz, lista para desplegar independientemente en Vercel y configurar con la URL del backend.
+- `api/`: servicio FastAPI, validación de esquemas, predicción, retroalimentación, métricas y registros de monitoreo.
+- `frontend/`: interfaz que sirve FastAPI y que también puede publicarse en Vercel.
 - `artifacts/`: orden de clases y modelo entrenado. El archivo esperado por la API es `modelo_clasificacion_frutas.keras`.
+- `model_training/`: preparación de las fuentes públicas y entrenamiento de MobileNetV3. El alcance y los resultados del artefacto de esta rama están en [artifacts/MODELO.md](artifacts/MODELO.md).
 - `pipelines/`: los trabajos Spark Batch y Kafka/Spark Structured Streaming quedan pendientes para el último bloque.
 
 La API puede arrancar sin el modelo entrenado. `/health` y `/metrics` siguen disponibles, y `/ready` y `/predict` responden `503` hasta que el modelo esté cargado.
@@ -55,9 +56,9 @@ Los logs JSON y el baseline se guardan bajo `logs/`. El sistema de archivos de u
 ### 3. Desplegar el frontend en Vercel
 
 1. En Vercel, importa el mismo repositorio de GitHub.
-2. Establece **Root Directory** en `clasificacion-madurez-frutas/frontend` y el preset en **Other**. Usa el directorio de salida `.` y deja vacío el comando de build.
-3. Despliega y abre el dominio asignado `https://<proyecto>.vercel.app`.
-4. En la sección **Conectar con la API**, ingresa la URL `https://<servicio>.onrender.com` y pulsa **Guardar y probar conexión**. La URL queda guardada en el navegador.
+2. Establece **Root Directory** en `clasificacion-madurez-frutas/frontend` y el preset en **Other**. `vercel.json` configura `node build.mjs` y el directorio de salida `dist`.
+3. Define la variable de entorno `API_BASE_URL` con `https://<servicio>.onrender.com` y despliega.
+4. Agrega el origen `https://<proyecto>.vercel.app` a `CORS_ORIGINS` en Render. Abre la interfaz y verifica la conexión y la predicción de una imagen.
 
 El frontend también acepta `?api=https://<servicio>.onrender.com` o una configuración `window.API_BASE_URL` previa al script. En localhost y al servir desde el host de la API, usa el mismo origen. Asegúrate de que `CORS_ORIGINS` en Render incluya todos los dominios de Vercel usados (producción y, si aplica, preview).
 
