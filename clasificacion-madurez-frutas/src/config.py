@@ -5,7 +5,7 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = BASE_DIR / "data"
 ARTIFACTS_DIR = BASE_DIR / "artifacts"
 LOGS_DIR = BASE_DIR / "logs"
-MODEL_PATH = ARTIFACTS_DIR / "modelo_madurez.keras"
+MODEL_PATH = ARTIFACTS_DIR / "modelo_clasificacion_frutas.keras"
 CLASSES_PATH = ARTIFACTS_DIR / "clases.json"
 
 IMAGE_SIZE = (224, 224)
