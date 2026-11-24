@@ -1,14 +1,18 @@
 import base64
 from io import BytesIO
+import json
 
 import cv2
 import numpy as np
 import pytest
 from PIL import Image
+from tensorflow import keras
 
 from src.config import CLASS_NAMES
 from src.inference import (
     generate_gradcam_base64,
+    load_class_names,
+    load_inference_model,
     predict_from_bytes,
     preprocess_image_bytes,
 )
@@ -79,3 +83,33 @@ def test_generate_gradcam_base64():
 
     assert decoded is not None
     assert decoded.shape == (224, 224, 3)
+
+
+def test_notebook_class_order_matches_model_outputs(tmp_path):
+    classes_path = tmp_path / "clases.json"
+    classes_path.write_text(json.dumps(["deteriorada", "madura", "verde"]))
+    class_names = load_class_names(classes_path, required=True)
+
+    model = keras.Sequential([
+        keras.Input(shape=(224, 224, 3)),
+        keras.layers.Conv2D(4, 3, activation="relu"),
+        keras.layers.GlobalAveragePooling2D(),
+        keras.layers.Dense(
+            3,
+            activation="softmax",
+            kernel_initializer="zeros",
+            bias_initializer=keras.initializers.Constant([2.0, 0.0, -1.0]),
+        ),
+    ])
+    model_path = tmp_path / "checkpoint.keras"
+    model.save(model_path)
+    loaded_model = load_inference_model(model_path)
+    image = make_synthetic_image_bytes()
+
+    prediction = predict_from_bytes(image, loaded_model, class_names)
+    gradcam, class_index = generate_gradcam_base64(image, loaded_model)
+
+    assert list(prediction["probabilidades"]) == ["podrida", "madura", "verde"]
+    assert prediction["clase_predicha"] == "podrida"
+    assert class_index == 0
+    assert base64.b64decode(gradcam).startswith(b"\x89PNG\r\n\x1a\n")

@@ -10,7 +10,7 @@ Proyecto de visión por computadora para clasificar imágenes en `madura`, `podr
 - `artifacts/`: orden de clases y modelo entrenado. El archivo esperado por la API es `modelo_clasificacion_frutas.keras`.
 - `pipelines/`: los trabajos Spark Batch y Kafka/Spark Structured Streaming quedan pendientes para el último bloque.
 
-La API puede arrancar sin el modelo entrenado: `/health` y `/metrics` siguen disponibles, y `/predict` responde `503` hasta que exista el artefacto del modelo.
+La API puede arrancar sin el modelo entrenado. `/health` y `/metrics` siguen disponibles, y `/ready` y `/predict` responden `503` hasta que el modelo esté cargado.
 
 ## Ejecutar localmente
 
@@ -43,19 +43,19 @@ Si `origin` ya existe, omite `git remote add origin`.
 ### 2. Desplegar la API en Render
 
 1. En Render, selecciona **New + → Web Service** y conecta el repositorio de GitHub.
-2. Selecciona la rama `main`, configura el directorio raíz como la raíz del proyecto y el entorno **Docker**.
+2. Selecciona la rama que contiene el modelo, el directorio raíz `clasificacion-madurez-frutas` y el entorno **Docker**. El Dockerfile es `./Dockerfile` y su contexto es `.` desde ese directorio.
 3. En **Environment**, configura `CORS_ORIGINS` con el origen Vercel, por ejemplo `https://mi-app.vercel.app`. Se permite `*` por defecto para pruebas iniciales; reemplázalo por los dominios reales antes de producción.
 4. Crea el servicio y espera al despliegue. Render proporciona `PORT`; el contenedor lo utiliza automáticamente.
-5. Verifica `https://<servicio>.onrender.com/health` y `/metrics`.
+5. Configura `/ready` como **Health Check Path** y verifica que responda HTTP 200. `/health` permite comprobar el estado del modelo y `/metrics` muestra las métricas de monitoreo.
 
-Para habilitar predicciones, agrega `artifacts/modelo_clasificacion_frutas.keras` al repositorio (el archivo debe respetar el límite de tamaño de GitHub) o configura después un almacenamiento de artefactos accesible durante el despliegue. Sin ese modelo, el servicio inicia correctamente, pero las predicciones devuelven `503`.
+Para habilitar predicciones, incluye `artifacts/modelo_clasificacion_frutas.keras` y el `artifacts/clases.json` exportado con ese checkpoint. El orden del JSON debe coincidir con el orden de las salidas del modelo. El notebook usa `["deteriorada", "madura", "verde"]`. La API conserva ese orden y publica `deteriorada` con la clave `podrida`.
 
 Los logs JSON y el baseline se guardan bajo `logs/`. El sistema de archivos de un contenedor puede ser efímero; configura un disco persistente de Render si necesitas conservar esos registros entre despliegues o reinicios.
 
 ### 3. Desplegar el frontend en Vercel
 
 1. En Vercel, importa el mismo repositorio de GitHub.
-2. Establece **Root Directory** en `frontend` y usa el despliegue estático predeterminado (sin comando de build).
+2. Establece **Root Directory** en `clasificacion-madurez-frutas/frontend` y el preset en **Other**. Usa el directorio de salida `.` y deja vacío el comando de build.
 3. Despliega y abre el dominio asignado `https://<proyecto>.vercel.app`.
 4. En la sección **Conectar con la API**, ingresa la URL `https://<servicio>.onrender.com` y pulsa **Guardar y probar conexión**. La URL queda guardada en el navegador.
 

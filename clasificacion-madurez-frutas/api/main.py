@@ -35,8 +35,9 @@ from src.inference import (
 async def lifespan(app: FastAPI):
     initialize_monitoring_storage()
     app.state.model = None
-    app.state.class_names = load_class_names()
-    if MODEL_PATH.is_file():
+    has_model = MODEL_PATH.is_file()
+    app.state.class_names = load_class_names(required=has_model)
+    if has_model:
         app.state.model = load_inference_model()
     else:
         logging.getLogger(__name__).warning(
@@ -49,7 +50,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Clasificacion de Madurez", lifespan=lifespan)
 app.state.model = None
-app.state.class_names = load_class_names()
+app.state.class_names = list(CLASS_NAMES)
 
 cors_origins = [
     origin.strip().rstrip("/")
@@ -79,6 +80,13 @@ def health():
         "model_loaded": app.state.model is not None,
         "classes": app.state.class_names,
     }
+
+
+@app.get("/ready")
+def readiness():
+    if app.state.model is None:
+        return JSONResponse({"status": "unavailable"}, status_code=503)
+    return {"status": "ready"}
 
 
 @app.post("/predict", response_model=PredictionResponse)

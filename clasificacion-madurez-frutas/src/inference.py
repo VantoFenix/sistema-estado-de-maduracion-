@@ -14,6 +14,7 @@ from src.config import (
     CONFIDENCE_THRESHOLD,
     IMAGE_SIZE,
     MODEL_PATH,
+    NUM_CLASSES,
 )
 
 
@@ -22,25 +23,38 @@ def load_inference_model(model_path: Path | str = MODEL_PATH) -> keras.Model:
         Path(model_path),
         compile=False,
     )
-    _ = model(
+    output = model(
         tf.zeros((1, *IMAGE_SIZE, 3), dtype=tf.float32),
         training=False,
     )
+    if not tf.is_tensor(output) or output.shape != (1, NUM_CLASSES):
+        raise ValueError("La salida del modelo debe tener un valor por clase")
     return model
 
 
-def load_class_names(classes_path: Path | str = CLASSES_PATH) -> list[str]:
+def load_class_names(
+    classes_path: Path | str = CLASSES_PATH,
+    *,
+    required: bool = False,
+) -> list[str]:
     path = Path(classes_path)
-    if path.is_file():
-        with path.open("r", encoding="utf-8") as file:
-            class_names = json.load(file)
-        if (
-            isinstance(class_names, list)
-            and class_names
-            and all(isinstance(name, str) for name in class_names)
-        ):
-            return class_names
-    return list(CLASS_NAMES)
+    if not path.is_file():
+        if required:
+            raise ValueError(f"Falta el catálogo de clases del modelo: {path}")
+        return list(CLASS_NAMES)
+
+    with path.open("r", encoding="utf-8") as file:
+        class_names = json.load(file)
+    if not isinstance(class_names, list) or not all(
+        isinstance(name, str) for name in class_names
+    ):
+        raise ValueError(f"El catálogo {path} debe contener una lista de clases")
+
+    # El notebook usa «deteriorada» y la API publica «podrida». Cada índice se conserva.
+    names = ["podrida" if name == "deteriorada" else name for name in class_names]
+    if len(names) != NUM_CLASSES or set(names) != set(CLASS_NAMES):
+        raise ValueError(f"El catálogo {path} debe identificar cada clase una sola vez")
+    return names
 
 
 def preprocess_image_bytes(image_bytes: bytes) -> tuple[np.ndarray, dict]:
@@ -139,10 +153,20 @@ def generate_gradcam_base64(
     if last_conv_layer is None:
         raise ValueError("El modelo no contiene ninguna capa Conv2D")
 
-    grad_model = tf.keras.Model(
-        inputs=model.inputs,
-        outputs=[last_conv_layer.output, model.output],
-    )
+    if isinstance(model, keras.Sequential):
+        # Un Sequential recargado puede tener varios nodos por capa.
+        # Construimos ambas salidas en el mismo grafo para conectar el gradiente.
+        grad_input = keras.Input(shape=model.input_shape[1:], dtype=model.inputs[0].dtype)
+        output = grad_input
+        for layer in model.layers:
+            output = layer(output)
+            if layer is last_conv_layer:
+                conv_output = output
+    else:
+        grad_input = model.inputs
+        conv_output = last_conv_layer.output
+        output = model.outputs[0]
+    grad_model = keras.Model(inputs=grad_input, outputs=[conv_output, output])
 
     with tf.GradientTape() as tape:
         conv_outputs, predictions = grad_model(input_tensor, training=False)
